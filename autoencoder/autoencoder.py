@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from collections import OrderedDict
     
@@ -6,13 +5,9 @@ from collections import OrderedDict
 class AutoencoderCNN(nn.Module):
     """A simple CNN Autoencoder for MNIST
     """
-    
     def __init__(self):
 
         super(AutoencoderCNN, self).__init__()
-        
-        encoder_layers = []
-        decoder_layers = []
         
         self.encoder = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=2, padding=1), # shape (B, 16, 14, 14)
@@ -29,7 +24,6 @@ class AutoencoderCNN(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(in_channels=16, out_channels=1, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid()
-            
         )
         
     def forward(self, x):
@@ -96,3 +90,4 @@ class Autoencoder(nn.Module):
         x = x.view(input_shape[0], input_shape[1], input_shape[2], input_shape[3]) # shape (B, C, H, W)
         
         return x
+    
