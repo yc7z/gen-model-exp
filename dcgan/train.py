@@ -65,7 +65,12 @@ if __name__ == "__main__":
 
     bce = nn.BCELoss()
 
-    for it in range(1, args.epochs + 1):
+    img_list = []
+    G_losses = []
+    D_losses = []
+
+    print(f'training starts. epochs: {args.epochs}, batch size: {args.batch_size}, batches per epoch: {len(dataloader) / args.batch_size}')
+    for epoch in range(1, args.epochs + 1):
        for i, data in enumerate(dataloader):
             # 1. Train discriminator: maximize log(D(x)) + log(1 - D(G(z)))
             # compute discriminator loss on real images
@@ -99,4 +104,23 @@ if __name__ == "__main__":
             g_loss.backward()
             optim_g.step()
 
-            print(f'batch {i} complete')
+            if i % 50 == 1:
+                print(f'epoch: {epoch}, batch: {i}, discriminator loss: {d_loss.item()}, generator loss: {g_loss.item()}')
+
+            D_losses.append(d_loss.item())
+            G_losses.append(g_loss.item()) 
+
+            if i % 500 == 0:
+                with torch.no_grad():
+                    fake = G(torch.randn(size=(batch_size, 100, 1, 1), device=device)).detach().cpu()
+                img_list.append(torchvision.utils.make_grid(fake, padding=2, normalize=True))
+    
+    # plot losses:
+    plt.figure(figsize=(10,5))
+    plt.title("Generator and Discriminator Loss During Training")
+    plt.plot(G_losses,label="G")
+    plt.plot(D_losses,label="D")
+    plt.xlabel("iterations")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.show()
