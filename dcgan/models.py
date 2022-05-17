@@ -10,7 +10,7 @@ class Generator(nn.Module):
 
         # CHW: 100x1x1 -> 3x64x64 (100-dimensional code vector to 64x64 3-channel images).
         self.main = nn.Sequential(
-            # CHW: 10x1x1 -> 1024x4x4
+            # CHW: 100x1x1 -> 1024x4x4
             # W_out = (W_in - 1) * stride - 2 * padding + dilation * (kernel - 1) + output_padding + 1
             nn.ConvTranspose2d(in_channels=100, out_channels=1024, kernel_size=4, bias=False),
             nn.BatchNorm2d(1024),

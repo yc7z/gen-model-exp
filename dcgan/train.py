@@ -94,7 +94,7 @@ if __name__ == "__main__":
             d_loss.backward()
             optim_d.step()
         
-            # 2. Train generator: minimize -log(G(z))
+            # 2. Train generator: minimize -log(D(G(z)))
             optim_g.zero_grad()
             noise = torch.randn(size=(batch_size, 100, 1, 1), device=device)
             real_labels = torch.full(size=(batch_size, ), fill_value=real_label, device=device)
