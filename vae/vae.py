@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-
 from collections import OrderedDict
 
 class VariationalAutoencoderCNN(nn.Module):
@@ -37,21 +36,23 @@ class VariationalAutoencoderCNN(nn.Module):
         x.shape = (B, 1, 28, 28)
         """
         
-        # encode input to get mean and variance
+        # Encode input, x, to get mean and variance: encoder(x) = (mu, log(var))
         x = self.encoder(x) # shape (B, 64, 1, 1)
         x = x.view(x.size(0), -1) # shape (B, 64)
         
         mu = self.linear_mu(x) # shape (B, latent_dim)
         logvar = self.linear_logvar(x) # shape (B, latent_dim)
         
-        # sample latent vector using mean and variance
-        e = torch.rand_like(mu)
+        # sample z from approximate posterior: z ~ q(z|x) = N(z; mu, var*I)
+        # reparameterization trick: z = var * eps + mu, where eps ~ N(0, I)
+        eps = torch.rand_like(mu)
         
-        z = torch.exp(logvar) * e + mu
+        z = torch.exp(logvar) * eps + mu
         
-        y = self.decoder(z) # shape (B, 1, 28, 28)
+        # generate data from z: y ~ p(x|z)
+        x_hat = self.decoder(z) # shape (B, 1, 28, 28)
         
-        return y, mu, logvar
+        return x_hat, mu, logvar
     
     
 class VariationalAutoencoder(nn.Module):
@@ -104,8 +105,8 @@ class VariationalAutoencoder(nn.Module):
         
         z = torch.exp(logvar) * e + mu # shape (B, latent_dim)
         
-        y = self.decoder(z) # shape (B, C*H*W)
-        y = y.view(input_shape[0], input_shape[1], input_shape[2], input_shape[3]) # shape (B, C, H, W)
+        x_hat = self.decoder(z) # shape (B, C*H*W)
+        x_hat = x_hat.view(input_shape[0], input_shape[1], input_shape[2], input_shape[3]) # shape (B, C, H, W)
         
-        return y, mu, logvar
+        return x_hat, mu, logvar
     
