@@ -1,28 +1,32 @@
 import torch.nn as nn
 from collections import OrderedDict
+import numpy as np
     
  
 class AutoencoderCNN(nn.Module):
-    """A simple CNN Autoencoder for MNIST
-    """
-    def __init__(self):
-
-        super(AutoencoderCNN, self).__init__()
+    def __init__(self, latent_dim):
+        super(AutoencoderCNN, self).__init__()  
+        
+        self.latent_dim = latent_dim
         
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=2, padding=1), # shape (B, 16, 14, 14)
+            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=2, padding=1), # shape (B, 64, 14, 14)
             nn.ReLU(),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), # shape (B, 32, 7, 7)
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1), # shape (B, 128, 7, 7)
             nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7, stride=2, padding=1) # shape (B, 64, 1, 1)
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1), # shape (B, 256, 4, 4)
+            nn.ReLU(),
+            nn.Conv2d(in_channels=256, out_channels=latent_dim, kernel_size=4, stride=1, padding=0) # shape (B, latent_dim, 1, 1)
         )
         
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=7, stride=2, padding=1), # (B, 32, 7, 7)
+            nn.ConvTranspose2d(in_channels=latent_dim, out_channels=256, kernel_size=4, stride=1, padding=0, output_padding=0), # shape (B, 256, 4, 4)
             nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 16, 14, 14)
+            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=1, output_padding=0), # shape (B, 128, 7, 7)
             nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=16, out_channels=1, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 64, 14, 14)
+            nn.ReLU(),
+            nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 1, 28, 28)
             nn.Sigmoid()
         )
         
@@ -31,24 +35,14 @@ class AutoencoderCNN(nn.Module):
         x.shape = (B, 1, 28, 28)
         """
         
-        x = self.encoder(x) # shape (B, 64, 1, 1)
+        x = self.encoder(x) # shape (B, latent_dim, 1, 1)
         x = self.decoder(x) # shape (B, 1, 28, 28)
         
         return x    
     
     
 class Autoencoder(nn.Module):
-    """AutoEncoder Network with linear layers
-    
-    Args:
-        layers: decreasing list of integers indicating the intermediate layer sizes of the encoder and decoder.
-                If len(layers) == 2, returns a linear autoencoder. Otherwise returns a non-linear autoencoder (activations
-                are applied between layers).
-        bias (bool, optional): Include bias in each layer. Defaults to False.
-    """
-    
     def __init__(self, layers, bias=True):
-
         super(Autoencoder, self).__init__()
         
         self.layers = layers
@@ -64,13 +58,19 @@ class Autoencoder(nn.Module):
         
         # nonlinear autoencoder
         else:
+            # encoder
             for i in range(len(layers) - 1):
                 encoder_layers.append((f'layer{i+1}', nn.Linear(in_features=layers[i], out_features=layers[i+1], bias=bias)))
-                decoder_layers.append((f'layer{i+1}', nn.Linear(in_features=layers[-i-1], out_features=layers[-i-2], bias=bias)))
                 
                 if i < len(layers) - 2:
                     encoder_layers.append((f'relu{i+1}', nn.ReLU()))
-                    decoder_layers.append((f'relu{i+1}', nn.ReLU()))
+            
+            # decoder
+            for i in range(1, len(layers)):
+                decoder_layers.append((f'layer{i}', nn.Linear(in_features=layers[-i], out_features=layers[-i-1], bias=bias)))
+                
+                if i < len(layers) - 1:
+                    decoder_layers.append((f'relu{i}', nn.ReLU()))
                     
         decoder_layers.append(('sigmoid', nn.Sigmoid()))
             
