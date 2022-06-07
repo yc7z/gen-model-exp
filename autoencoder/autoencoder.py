@@ -42,7 +42,7 @@ class AutoencoderCNN(nn.Module):
     
     
 class Autoencoder(nn.Module):
-    def __init__(self, layers, bias=True):
+    def __init__(self, layers=[28*28, 30], bias=True):
         super(Autoencoder, self).__init__()
         
         self.layers = layers

@@ -2,7 +2,7 @@
 import torch
 import torch.nn.functional as F
 
-def ELBO(x, x_hat, mu, logvar, gamma):
+def ELBO(x, x_hat, mu, logvar, gamma, reduction='sum'):
     """
     x.shape = (B, C, H, W)
     
@@ -23,7 +23,11 @@ def ELBO(x, x_hat, mu, logvar, gamma):
     
     # get ELBO loss
     L_elbo = kl_div + gamma * L_rec # shape (B)
-    L_elbo = L_elbo.mean() 
+    
+    if reduction == 'sum':
+        L_elbo = L_elbo.sum()
+    elif reduction == 'mean':
+        L_elbo = L_elbo.mean()
     
     return L_elbo
 

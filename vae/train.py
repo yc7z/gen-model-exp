@@ -1,38 +1,55 @@
+#cj -s '../../dataset' '../../../socal'
 
 import torch
-import torch.nn as nn
-from torch.optim import SGD
-from torchvision.datasets import MNIST
-from torch.utils.data import DataLoader
-import torchvision.transforms as T
 
-from vae import *
+from experiment import Experiment
 
-import argparse
 
-from vae.vae import VariationalAutoencoderCNN
+# task_list = [
+#     'SF',
+#     'EBL'
+# ]
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', type=float, default=4e-3)
-    parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--epochs', type=int, default=3)
-    parser.add_argument('--momentum', type=float, default=0.9)
-    parser.add_argument('--weight_decay', type=float, default=1e-4)
-    parser.add_argument('--latent_dim', type=int, default=30)
-    args = parser.parse_args()
-    
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
-    # dataset and dataloaders
-    mnist = MNIST(root="dataset", train=False, transform=T.ToTensor(), download=True)
-    mnist_loader = DataLoader(dataset=mnist, batch_size=args.batch_size, shuffle=True)
-    
-    # model
-    vae = VariationalAutoencoderCNN(args.latent_dim).to(device)
-    
-    # optimizer
-    optimizer = SGD(vae.parameters, lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    
-    # for epoch in range(1, args.epochs+1):
-        
+for dropout_idx in range(2):
+    for norm_first_idx in range(2): 
+        for t_warmup_idx in range(3):
+            for lr_max_idx in range(3): 
+
+                dataset_opts  = {
+                    'dataset_path': '../../dataset' 
+                }
+                
+                model_opts = {
+                    'num_layers': 8, 
+                    'num_heads': 8, 
+                    'embed_dim': 512,
+                    'norm_first': norm_first_list[norm_first_idx], 
+                    'pe': True,
+                    'dropout': dropout_list[dropout_idx], 
+                }
+
+                train_opts   = {
+                    'task': 'SF', 
+                    'optim': 'Adam', 
+                    'betas': (0.9, 0.98), 
+                    'weight_decay': 1e-4, 
+                    'epochs': 200, 
+                    'initial_lr': 0.0,
+                    'lr_max': lr_max_list[lr_max_idx],
+                    't_warmup': t_warmup_list[t_warmup_idx],
+                    'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
+                    'seed': 0,
+                }
+
+                results_opts = {
+                    'training_results_path': './results',
+                    'train_dump_file'   : 'training_results.json',
+                }
+
+                opts = dict(dataset_opts, **img_enc_opts)
+                opts = dict(opts, **transformer_opts)
+                opts = dict(opts, **train_opts)
+                opts = dict(opts, **results_opts)
+
+                exp = Experiment(opts)
+                exp.run()
