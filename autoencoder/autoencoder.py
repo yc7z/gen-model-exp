@@ -4,31 +4,60 @@ import numpy as np
     
  
 class AutoencoderCNN(nn.Module):
-    def __init__(self, latent_dim):
+    def __init__(self, latent_dim=30, batch_norm=False):
         super(AutoencoderCNN, self).__init__()  
         
         self.latent_dim = latent_dim
+        self.batch_norm = batch_norm
         
-        self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=2, padding=1), # shape (B, 64, 14, 14)
-            nn.ReLU(),
-            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1), # shape (B, 128, 7, 7)
-            nn.ReLU(),
-            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1), # shape (B, 256, 4, 4)
-            nn.ReLU(),
-            nn.Conv2d(in_channels=256, out_channels=latent_dim, kernel_size=4, stride=1, padding=0) # shape (B, latent_dim, 1, 1)
-        )
-        
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=latent_dim, out_channels=256, kernel_size=4, stride=1, padding=0, output_padding=0), # shape (B, 256, 4, 4)
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=1, output_padding=0), # shape (B, 128, 7, 7)
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 64, 14, 14)
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 1, 28, 28)
-            nn.Sigmoid()
-        )
+        if batch_norm:
+            self.encoder = nn.Sequential(
+                nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=2, padding=1), # shape (B, 64, 14, 14)
+                nn.BatchNorm2d(num_features=64),
+                nn.ReLU(),
+                nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1), # shape (B, 128, 7, 7)
+                nn.BatchNorm2d(num_features=128),
+                nn.ReLU(),
+                nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1), # shape (B, 256, 4, 4)
+                nn.BatchNorm2d(num_features=256),
+                nn.ReLU(),
+                nn.Conv2d(in_channels=256, out_channels=latent_dim, kernel_size=4, stride=1, padding=0) # shape (B, latent_dim, 1, 1)
+            )
+            
+            self.decoder = nn.Sequential(
+                nn.ConvTranspose2d(in_channels=latent_dim, out_channels=256, kernel_size=4, stride=1, padding=0, output_padding=0), # shape (B, 256, 4, 4)
+                nn.BatchNorm2d(num_features=256),
+                nn.ReLU(),
+                nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=1, output_padding=0), # shape (B, 128, 7, 7)
+                nn.BatchNorm2d(num_features=128),
+                nn.ReLU(),
+                nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 64, 14, 14)
+                nn.BatchNorm2d(num_features=64),
+                nn.ReLU(),
+                nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 1, 28, 28)
+                nn.Sigmoid()
+            )
+        else:
+            self.encoder = nn.Sequential(
+                nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=2, padding=1), # shape (B, 64, 14, 14)
+                nn.ReLU(),
+                nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1), # shape (B, 128, 7, 7)
+                nn.ReLU(),
+                nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1), # shape (B, 256, 4, 4)
+                nn.ReLU(),
+                nn.Conv2d(in_channels=256, out_channels=latent_dim, kernel_size=4, stride=1, padding=0) # shape (B, latent_dim, 1, 1)
+            )
+            
+            self.decoder = nn.Sequential(
+                nn.ConvTranspose2d(in_channels=latent_dim, out_channels=256, kernel_size=4, stride=1, padding=0, output_padding=0), # shape (B, 256, 4, 4)
+                nn.ReLU(),
+                nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=1, output_padding=0), # shape (B, 128, 7, 7)
+                nn.ReLU(),
+                nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 64, 14, 14)
+                nn.ReLU(),
+                nn.ConvTranspose2d(in_channels=64, out_channels=1, kernel_size=3, stride=2, padding=1, output_padding=1), # shape (B, 1, 28, 28)
+                nn.Sigmoid()
+            )
         
     def forward(self, x):
         """

@@ -1,3 +1,6 @@
 /main.py
 /dataset
 /Notes.md
+/autoencoder/__pycache__
+/vae/__pycache__
+/.DS_Store

@@ -207,7 +207,7 @@ class Experiment:
 
                     results.append(dict(self.__getstate__(), **stats))
             
-        output = '{}\t{}\tLoss: {meter.val:.4f} ({meter.avg:.4f})\tEpoch: [{}/{}]\t'.format(self.task, phase.capitalize(), epoch, self.epochs, meter=meters['loss'])
+        output = '{}\tLoss: {meter.val:.4f} ({meter.avg:.4f})\tEpoch: [{}/{}]\t'.format(phase.capitalize(), epoch, self.epochs, meter=meters['loss'])
 
         print(output)
         sys.stdout.flush()
