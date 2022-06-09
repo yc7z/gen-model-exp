@@ -26,10 +26,10 @@ batch_size_lst = [
 ]
 
 
-for layers_idx in range(1): 
-    for lr_idx in range(1): 
-        for batch_size_idx in range(1):
-            for weight_decay_idx in range(1):
+for layers_idx in range(2): 
+    for lr_idx in range(4): 
+        for batch_size_idx in range(3):
+            for weight_decay_idx in range(2):
 
                 dataset_opts = {
                     'dataset': 'MNIST',
@@ -56,7 +56,7 @@ for layers_idx in range(1):
                     'lr': lr_lst[lr_idx],
                     'optim_kwargs': optim_kwargs,
                     'batch_size': batch_size_lst[batch_size_idx],
-                    'epochs': 10, 
+                    'epochs': 200, 
                     'save_every': 25,
                     'device': torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
                     'seed': 0,
