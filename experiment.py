@@ -89,7 +89,7 @@ class Experiment:
             
             # json dump file
             results_path = self.training_results_path + '/' + self.train_dump_file
-            results = DumpJSON(read_path=results_path,write_path=results_path)
+            results = DumpJSON(read_path=results_path, write_path=results_path)
             
             for name in meters:
                 meters[name].reset()
@@ -195,7 +195,7 @@ class Experiment:
             
             # append row to results CSV file
             if results is not None:
-                if iter == len(loader):
+                if i == len(loader):
                     
                     stats = {'phase': phase,
                              'epoch': epoch,
@@ -204,6 +204,9 @@ class Experiment:
                              'avg_loss': meters['loss'].avg,
                              'rmse': meters['mse'].value()
                              }
+                    
+                    stats = dict(stats, **self.model_kwargs)
+                    stats = dict(stats, **self.optim_kwargs)
 
                     results.append(dict(self.__getstate__(), **stats))
             
@@ -228,7 +231,9 @@ class Experiment:
                       'lr_scheduler',
                       'dataset_path',
                       'device',
-                      'seed'
+                      'seed',
+                      'model_kwargs',
+                      'optim_kwargs'
                       ]
         
         for attr in attributes:
